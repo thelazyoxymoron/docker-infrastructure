@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+    focalboard:
+        image: mattermost/focalboard:latest
+        container_name: focalboard-app
+        restart: always
+        depends_on:
+            - focalboard-db
+        volumes:
+            - ./config.json:/opt/focalboard/config.json
+            - ./focalboard-app-backup:/var/lib/focalboard
+        environment:
+            - VIRTUAL_HOST=focalboard.thelazyoxymoron.me
+            - LETSENCRYPT_HOST=focalboard.thelazyoxymoron.me
+            - VIRTUAL_PORT=8000
+        networks:
+            - proxy-network
+            - postgres-database
+
+    focalboard-db:
+        image: postgres:13
+        restart: always
+        container_name: focalboard-postgres
+        volumes:
+            - "./focalboard-data:/var/lib/postgresql/data"
+        environment:
+            POSTGRES_DB: focalboard
+            POSTGRES_USER: thelazyoxymoron
+            POSTGRES_PASSWORD: changeme
+        networks:
+            - postgres-database
+
+networks:
+    proxy-network:
+        external: true
+    postgres-database:
