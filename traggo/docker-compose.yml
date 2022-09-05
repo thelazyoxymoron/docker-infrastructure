@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  traggo:
+    image: traggo/server:latest
+    environment:
+      - TRAGGO_DEFAULT_USER_NAME=thelazyoxymoron
+      - TRAGGO_DEFAULT_USER_PASS=changeme
+      - VIRTUAL_HOST=tracker.thelazyoxymoron.me
+      - LETSENCRYPT_HOST=tracker.thelazyoxymoron.me
+      - VIRTUAL_PORT=3030
+    networks:
+      - proxy-network
+    volumes:
+      - ./traggodata:/opt/traggo/data
+
+networks:
+  proxy-network:
+    external: true
