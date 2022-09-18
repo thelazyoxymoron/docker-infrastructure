@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+  db_recipes:
+    restart: always
+    image: postgres:11-alpine
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U $$POSTGRES_USER -d $$POSTGRES_DB --list || exit 1"]
+      interval: 4s
+      timeout: 1s
+      retries: 12
+
+  web_recipes:
+    image: vabene1111/recipes:1.3.3
+    restart: always
+    env_file:
+      - ./.env
+    volumes:
+      - ./recipes/static:/opt/recipes/staticfiles
+      - ./recipes/media:/opt/recipes/mediafiles
+    depends_on:
+      db_recipes:
+        condition: service_healthy
+    networks:
+      - default
+      - proxy-network
+
+        # nginx_recipes:
+        #   image: nginx:mainline-alpine
+        #   restart: always
+        #   env_file:
+        #     - ./.env
+        #   depends_on:
+        #     - web_recipes
+        #   volumes:
+        #     - ./data/nginx_config:/etc/nginx/conf.d:ro
+        #     - ./data/staticfiles:/static
+        #     - ./mediafiles:/media
+        #   networks:
+        #     - default
+        #     - proxy-network
+
+networks:
+  default:
+  proxy-network:
+    external: true
