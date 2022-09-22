@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  lwt-mysql:
+    image: mysql:latest
+    container_name: lwt-mysql
+    volumes:
+        - ./mysql-data:/var/lib/mysql
+    restart: always
+    environment:
+        MYSQL_ROOT_PASSWORD: changeme
+        MYSQL_DATABASE: learning-with-texts
+    networks:
+        - lwt-network
+
+  lwt-wordpress:
+    image: wordpress
+    container_name: lwt-wordpress
+    restart: always
+    volumes:
+        - ./wordpress:/var/www/html
+    environment:
+        WORDPRESS_DB_HOST: lwt-mysql
+        WORDPRESS_DB_USER: root
+        WORDPRESS_DB_PASSWORD: changeme
+        WORDPRESS_DB_NAME: learning-with-texts
+        VIRTUAL_HOST: lwt.thelazyoxymoron.me
+        LETSENCRYPT_HOST: lwt.thelazyoxymoron.me
+
+    depends_on:
+        - lwt-mysql
+    networks:
+        - lwt-network
+        - proxy-network
+
+networks:
+    proxy-network:
+        external: true
+    lwt-network:
