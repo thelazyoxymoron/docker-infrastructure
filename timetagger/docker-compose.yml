@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  timetagger:
+    image: thelazyoxymoron/timetagger-arm64:v22.10.1
+    container_name: timetagger
+    restart: unless-stopped
+    volumes:
+      - ./timetagger:/root/_timetagger
+    env_file:
+      - ./.env
+    networks:
+      - proxy-network
+
+networks:
+  proxy-network:
+    external: true
