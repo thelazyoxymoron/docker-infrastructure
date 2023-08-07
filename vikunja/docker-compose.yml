@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  db:
+    image: mariadb:10
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    container_name: vikunja-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: vikunja
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: vikunja
+    volumes:
+      - ./db:/var/lib/mysql
+    networks:
+      - internal
+
+  api:
+    image: vikunja/api:0.20.1
+    container_name: vikunja-api
+    restart: unless-stopped
+    environment:
+      VIKUNJA_DATABASE_HOST: db
+      VIKUNJA_DATABASE_PASSWORD: ${MYSQL_PASSWORD}
+      VIKUNJA_DATABASE_TYPE: mysql
+      VIKUNJA_DATABASE_USER: vikunja
+      VIKUNJA_DATABASE_DATABASE: vikunja
+      VIKUNJA_SERVICE_JWTSECRET: ${VIKUNJA_SERVICE_JWTSECRET}
+      VIKUNJA_SERVICE_FRONTENDURL: https://sub.domain.com/
+    ports:
+      - 3456:3456
+    volumes:
+      - ./app-data:/app/vikunja/files
+    depends_on:
+      - db
+    networks:
+      - internal
+
+  frontend:
+    image: vikunja/frontend:0.20.1
+    container_name: vikunja-app
+    environment:
+      VIKUNJA_API_URL: http://vikunja-api:3456/api/v1
+      VIRTUAL_HOST: sub.domain.com
+      LETSENCRYPT_HOST: sub.domain.com
+      VIRTUAL_PORT: 80
+    restart: unless-stopped
+    networks:
+      - proxy-network
+      - internal
+
+networks:
+  proxy-network:
+    external: true
+  internal:
